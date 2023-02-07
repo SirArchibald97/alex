@@ -1,0 +1,15 @@
+const { Client, GatewayIntentBits } = require("discord.js");
+
+const client = new Client({ intents: Object.values(GatewayIntentBits).filter(value => isNaN(value)) });
+client.config = require("./config");
+client.login(client.config.token);
+
+const fs = require("fs");
+const eventFiles = fs.readdirSync("./events/");
+for (let file of eventFiles) {
+    let event = require(`./events/${file}`);
+    client.on(file.split(".")[0], event.bind(null, client));
+}
+
+const mysql = require("mysql");
+client.conn = new mysql.createConnection(client.config.db);
