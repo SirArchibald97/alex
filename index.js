@@ -10,6 +10,3 @@ for (let file of eventFiles) {
     let event = require(`./events/${file}`);
     client.on(file.split(".")[0], event.bind(null, client));
 }
-
-const mysql = require("mysql");
-client.conn = new mysql.createConnection(client.config.db);
