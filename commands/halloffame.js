@@ -4,6 +4,8 @@ module.exports = {
     data: new SlashCommandBuilder().setName("halloffame").setDescription("View the MCC Hall of Fame for each game and statistic"),
 
     async execute(client, interaction) {
+        await interaction.deferReply();
+
         const hofGames = {
             "GLOBAL_STATISTICS": "Global Statistics",
             "LEGACY_STATISTICS": "Legacy Statistics",
@@ -47,7 +49,7 @@ module.exports = {
             pages[category] = hofEmbed;
         }
 
-        const reply = await interaction.reply({ 
+        const reply = await interaction.editReply({ 
             embeds: [pages["GLOBAL_STATISTICS"]],
             components: [new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setCustomId("hof_page_selector").setPlaceholder("Select a page").addOptions(selectMenuOptions))],
             fetchReply: true

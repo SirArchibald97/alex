@@ -19,6 +19,8 @@ module.exports = {
     ),
 
     async execute(client, interaction) {
+        await interaction.deferReply();
+
         const selectedTeam = interaction.options.getString("team") || "RED";
 
         // fetch event data
@@ -62,7 +64,7 @@ module.exports = {
         }
 
         // send reply
-        const reply = await interaction.reply({ embeds: [teamPages[selectedTeam]], components: [new ActionRowBuilder().addComponents([new StringSelectMenuBuilder().setCustomId("team_page_selector").setPlaceholder("Select a team").addOptions(teamSelectorItems)])], fetchReply: true });
+        const reply = await interaction.editReply({ embeds: [teamPages[selectedTeam]], components: [new ActionRowBuilder().addComponents([new StringSelectMenuBuilder().setCustomId("team_page_selector").setPlaceholder("Select a team").addOptions(teamSelectorItems)])], fetchReply: true });
 
         // collect select menu interactions to update the embed
         const filter = int => int.customId === "team_page_selector" && int.member.id === interaction.member.id;

@@ -5,6 +5,8 @@ module.exports = {
     data: new SlashCommandBuilder().setName("event").setDescription("View MCC event details of the current event cycle"),
 
     async execute(client, interaction) {
+        await interaction.deferReply();
+
         // fetch event data
         const eventResponse = await fetch("https://api.mcchampionship.com/v1/event");
         const { code, data } = await eventResponse.json();
@@ -27,6 +29,6 @@ module.exports = {
             .setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() });
 
         // send embed
-        await interaction.reply({ embeds: [eventEmbed] });
+        await interaction.editReply({ embeds: [eventEmbed] });
     }
 }
