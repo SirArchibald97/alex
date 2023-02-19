@@ -44,7 +44,7 @@ module.exports = {
             // create each embed and add to object 
             const teamEmbed = new EmbedBuilder()
                 .setTitle(`MCC ${eventData.event}: Team ${getFormattedTeamName(name)}`)
-                .setDescription(`MCC ${eventData.event} will be held on <t:${eventTimestamp}> (<t:${eventTimestamp}:R>)`)
+                .setDescription(`MCC ${eventData.event} ${eventTimestamp < Date.now() ? "was" : "will be"} held on <t:${eventTimestamp}> (<t:${eventTimestamp}:R>)`)
                 .setColor(getTeamColourResolvable(name))
                 .setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() })
                 .setTimestamp()
