@@ -14,7 +14,7 @@ module.exports = async (client) => {
         client.buttons.set(file.split(".")[0], button);
     }
 
-    client.guild_webhook = new WebhookClient({ url: "https://canary.discord.com/api/webhooks/1074779907042836480/fmbL2rFVQsMqoBODi7d50aXTNg8D3zbsG6wjLGh6-JfBLgte5CPmQySC4to6I2o2JEjx" });
+    client.guild_webhook = new WebhookClient({ url: client.config.webhook });
 
     //console.log(await client.guilds.fetch());
 }
