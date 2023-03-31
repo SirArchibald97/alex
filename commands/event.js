@@ -15,14 +15,14 @@ module.exports = {
 
         // convert event date to timestamp
         const eventDate = new Date(data.date);
-        const eventTimestamp = eventDate.getTime() / 1000;
+        const eventTimestamp = eventDate.getTime();
 
         // create embed
         const eventEmbed = new EmbedBuilder()
-            .setTitle(`🏆 Next MCC`)
+            .setTitle(`🏆 ${eventTimestamp > Date.now() ? "Next" : "Previous"} MCC`)
             .setDescription(
-                `The next event **MCC ${data.event}** will be on <t:${eventTimestamp}> (<t:${eventTimestamp}:R>)` +
-                `\n\n🎞️ Watch the [update video](${data.updateVideo})!\n🐦 Follow [@MCChampionship_](https://twitter.com/MCChampionship_) on Twitter for updates!`
+                `The ${eventTimestamp > Date.now() ? "next" : "previous"} event **MCC ${data.event}** ${eventTimestamp > Date.now() ? "will be" : "was"} on <t:${eventTimestamp / 1000}> (<t:${eventTimestamp / 1000}:R>)` +
+                `\n\n🎞️ Watch the [update video](${data.updateVideo} ""${data.updateVideo})!\n🐦 Follow [@MCChampionship_](https://twitter.com/MCChampionship_ "https://twitter.com/MCChampionship_") on Twitter for updates!`
             )
             .setColor("Red")
             .setTimestamp()

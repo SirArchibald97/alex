@@ -37,21 +37,20 @@ module.exports = {
 
         // create embed for each team
         const teamPages = {};
+        const eventDate = new Date(eventData.date);
+        const eventTimestamp = eventDate.getTime();
         for (const [name, team] of Object.entries(teamsData)) {
-            const eventDate = new Date(eventData.date);
-            const eventTimestamp = eventDate.getTime() / 1000;
-
             // create each embed and add to object 
             const teamEmbed = new EmbedBuilder()
                 .setTitle(`MCC ${eventData.event}: Team ${getFormattedTeamName(name)}`)
-                .setDescription(`MCC ${eventData.event} ${eventTimestamp < Date.now() ? "was" : "will be"} held on <t:${eventTimestamp}> (<t:${eventTimestamp}:R>)`)
+                .setDescription(`MCC ${eventData.event} ${eventTimestamp < Date.now() ? "was" : "will be"} held on <t:${eventTimestamp / 1000}> (<t:${eventTimestamp / 1000}:R>)`)
                 .setColor(getTeamColourResolvable(name))
                 .setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() })
                 .setTimestamp()
 
             if (team.length !== 0) {
                 for (const player of team) {
-                    teamEmbed.addFields({ name: `${player.username}`, value: `[${player.stream.includes("twitch.tv") ? "Twitch" : "YouTube"} Stream](${player.stream})` });
+                    teamEmbed.addFields({ name: `${player.username}`, value: `[${player.stream.includes("twitch.tv") ? "Twitch" : "YouTube"} Stream](${player.stream} "${player.stream}")` });
                 }
             } else {
                 teamEmbed.setDescription("No players have joined this team yet!");
