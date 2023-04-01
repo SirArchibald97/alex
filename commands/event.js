@@ -22,7 +22,7 @@ module.exports = {
             .setTitle(`🏆 ${eventTimestamp > Date.now() ? "Next" : "Previous"} MCC`)
             .setDescription(
                 `The ${eventTimestamp > Date.now() ? "next" : "previous"} event **MCC ${data.event}** ${eventTimestamp > Date.now() ? "will be" : "was"} on <t:${eventTimestamp / 1000}> (<t:${eventTimestamp / 1000}:R>)` +
-                `\n\n🎞️ Watch the [update video](${data.updateVideo} "${data.updateVideo})"!\n🐦 Follow [@MCChampionship_](https://twitter.com/MCChampionship_ "https://twitter.com/MCChampionship_") on Twitter for updates!`
+                `\n\n🎞️ Watch the [update video](${data.updateVideo} "${data.updateVideo}")!\n🐦 Follow [@MCChampionship_](https://twitter.com/MCChampionship_ "https://twitter.com/MCChampionship_") on Twitter for updates!`
             )
             .setColor("Red")
             .setTimestamp()
