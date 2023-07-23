@@ -7,7 +7,7 @@ module.exports = {
         const aboutEmbed = new EmbedBuilder()
             .setTitle("About MCC Stats")
             .setTitle("Hi, I'm Alex!")
-            .setDescription("I am a stats bot where you can view information about the MCC event, it's teams, it's players! Take a look at some of my commands below:")
+            .setDescription("I'm an MCC utility bot developed by SirArchibald97! Using me you can view information about the MCC event, it's teams, and it's players! Take a look at some of my commands below:")
             .addFields(
                 { name: "/about", value: "View information about me!" },
                 { name: "/event", value: "View the current MCC event details" },

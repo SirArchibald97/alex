@@ -38,12 +38,16 @@ module.exports = {
         for (const [category, stats] of Object.entries(data)) {
             const hofEmbed = new EmbedBuilder()
                 .setTitle(`🏆 MCC Hall of Fame: ${hofGames[category]}`)
+                .setDescription("This information is considered legacy and may not be up-to-date!")
                 .setColor("Red")
                 .setTimestamp()
                 .setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() });
 
             for (const [stat, details] of Object.entries(stats)) {
-                hofEmbed.addFields({ name: stat, value: `${details.player} -> ${details.value instanceof Number ? details.value.toLocaleString("en-US") : details.value}` });
+                hofEmbed.addFields({
+                    name: `${stat}`,
+                    value: `**${details.player}** -> ${details.value instanceof Number ? details.value.toLocaleString("en-US") : details.value}` 
+                });
             }
 
             pages[category] = hofEmbed;
@@ -65,7 +69,7 @@ module.exports = {
                     new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
                         .setCustomId("hof_page_selector_disable")
                         .setPlaceholder("Select a team")
-                        .addOptions(teamSelectorItems)
+                        .addOptions(selectMenuOptions)
                         .setDisabled(true)
                     )
                 ]

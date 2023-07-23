@@ -43,18 +43,19 @@ module.exports = {
             // create each embed and add to object 
             const teamEmbed = new EmbedBuilder()
                 .setTitle(`MCC ${eventData.event}: Team ${getFormattedTeamName(name)}`)
-                .setDescription(`MCC ${eventData.event} ${eventTimestamp < Date.now() ? "was" : "will be"} held on <t:${eventTimestamp / 1000}> (<t:${eventTimestamp / 1000}:R>)`)
                 .setColor(getTeamColourResolvable(name))
                 .setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() })
                 .setTimestamp()
 
+            let desc = `MCC ${eventData.event} ${eventTimestamp < Date.now() ? "was" : "will be"} held on <t:${eventTimestamp / 1000}> (<t:${eventTimestamp / 1000}:R>)\n`;
             if (team.length !== 0) {
                 for (const player of team) {
-                    teamEmbed.addFields({ name: `${player.username}`, value: `[${player.stream.includes("twitch.tv") ? "Twitch" : "YouTube"} Stream](${player.stream} "${player.stream}")` });
+                    desc += `### ${player.username} : [${player.stream.includes("twitch.tv") ? "Twitch" : "YouTube"} Stream](${player.stream})\n`;
                 }
             } else {
-                teamEmbed.setDescription("No players have joined this team yet!");
+                desc += "No players have joined this team yet!";
             }
+            teamEmbed.setDescription(desc);
 
             teamPages[name] = teamEmbed;
 
