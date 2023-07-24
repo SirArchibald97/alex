@@ -1,10 +1,18 @@
 module.exports = {
-    async getLatestEvent(conn) {
-        return await executeSQL(conn, `SELECT * FROM latestEvent`);
+    addGuild: async function(conn, guildId) {
+        return await executeSQL(conn, `INSERT INTO guilds (guild_id) VALUES ('${guildId}')`);
     },
 
-    async updateLatestEvent(conn, oldEvent, newId, newDate) {
-        return await executeSQL(conn, `UPDATE latestEvent SET id = '${newId}' AND date = '${newDate}' WHERE id = '${oldEvent.id}'`);
+    getServerSettings: async function(conn, guildId) {
+        return await executeSQL(conn, `SELECT * FROM server_settings WHERE guild_id = '${guildId}'`);
+    },
+
+    updateServerSetting: async function(conn, guildId, setting, value) {
+        return await executeSQL(conn, `UPDATE server_settings SET ${setting} = '${value}' WHERE guild_id = '${guildId}'`);
+    },
+
+    getBadges: async function(conn) {
+        return await executeSQL(conn, `SELECT * FROM badges`);
     }
 }
 

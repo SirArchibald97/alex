@@ -1,4 +1,5 @@
 const { Client, GatewayIntentBits } = require("discord.js");
+const { createConnection } = require("mysql");
 
 const client = new Client({ intents: Object.values(GatewayIntentBits).filter(value => isNaN(value)) });
 client.config = require("./config");
@@ -10,3 +11,5 @@ for (let file of eventFiles) {
     let event = require(`./events/${file}`);
     client.on(file.split(".")[0], event.bind(null, client));
 }
+
+client.db = createConnection(client.config.db);
