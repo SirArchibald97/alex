@@ -1,5 +1,7 @@
-const { Collection, WebhookClient } = require("discord.js");
+const { Collection, WebhookClient, EmbedBuilder } = require("discord.js");
 const fs = require("fs");
+const cron = require("node-cron");
+const { getBeeGuilds } = require("../db");
 
 module.exports = async (client) => {
     console.log(`Client connected! [${client.user.tag}]`);
@@ -16,5 +18,15 @@ module.exports = async (client) => {
 
     client.guild_webhook = new WebhookClient({ url: client.config.webhook });
 
-    //console.log(await client.guilds.fetch());
+    cron.schedule("0 10 * * *", async () => {
+        const guilds = await getBeeGuilds(client.db);
+        for (const beeSettings of guilds) {
+            const guild = await client.guilds.fetch(beeSettings.guild_id);
+            const channel = await guild.channels.fetch(beeSettings.channel);
+            await channel.send({
+                content: `<@&${beeSettings.role}>`,
+                embeds: [new EmbedBuilder().setDescription("## DAILY BEE REMINDER!").setColor("Yellow").setImage("https://imgur.com/LGEEQkV.gif")]
+            });
+        }
+    }, { timezone: "Etc/UTC" });
 }
