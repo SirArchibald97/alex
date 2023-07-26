@@ -9,11 +9,12 @@ module.exports = {
             .setTitle("Hi, I'm Alex!")
             .setDescription("I'm an MCC utility bot developed by SirArchibald97! Using me you can view information about the MCC event, it's teams, and it's players! Take a look at some of my commands below:")
             .addFields(
-                { name: "/about", value: "View information about me!" },
                 { name: "/event", value: "View the current MCC event details" },
                 { name: "/teams", value: "View the teams of the current MCC event" },
                 { name: "/results", value: "View the scores and results of the last MCC event" },
                 { name: "/halloffame", value: "View the MCC Hall of Fame for each game and statistic" },
+                { name: "/badges", value: "View all the currently known hidden badges and how to get them" },
+                { name: "/cosmetics", value: "Search for a cosmetic and find out where to get it" },
                 { name: "\u200b", value: "😄 Profile picture by [公式 Illust](https://pin.it/3D0q38M)\n👑 R.I.P [Technoblade](https://technoblade.com)" }
             )
             .setColor("Red")

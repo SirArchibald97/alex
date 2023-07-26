@@ -21,14 +21,28 @@ module.exports = {
         return await executeSQL(conn, `SELECT * FROM badges`);
     },
 
-    // Method to retreieve bee notification settings from the database
+    // Method to fetch all cosmetics that contain the query string
+    // param conn: the connection to the database
+    // param query: the query string
+    getCosmetics: async function(conn, query) {
+        return await executeSQL(conn, `SELECT * FROM cosmetics WHERE LOWER(name) LIKE '%${query.toLowerCase()}%'`);
+    },
+
+    // Method to fetch NPC data of a given NPC
+    // param conn: the connection to the database
+    // param npcId: the NPC ID
+    getNpc: async function(conn, npcId) {
+        return (await executeSQL(conn, `SELECT * FROM npcs WHERE npc_id = '${npcId}'`))[0];
+    },
+
+    // Method to fetch bee notification settings for a given guild
     // param conn: the connection to the database
     // param guildId: the guild ID
     getBeeSettings: async function(conn, guildId) {
         return (await executeSQL(conn, `SELECT * FROM bee_notifs WHERE guild_id = '${guildId}'`))[0];
     },
 
-    // Method to update the bee notification settings in the database
+    // Method to update the bee notification settings for a given guild
     // param conn: the connection to the database
     // param guildId: the guild ID
     // param toggled: whether or not the noficition is toggled
@@ -38,7 +52,7 @@ module.exports = {
         return await executeSQL(conn, `UPDATE bee_notifs SET toggled = '${toggled}', channel = '${channel}', role = '${role}' WHERE guild_id = '${guildId}'`);
     },
 
-    // Method to retrieve all guilds with bee notifications toggled on
+    // Method to fetch all guilds with bee notifications toggled on
     // param conn: the connection to the database
     getBeeGuilds: async function(conn) {
         return await executeSQL(conn, `SELECT * FROM bee_notifs WHERE toggled = '1'`);
