@@ -5,6 +5,10 @@ module.exports = {
     data: new SlashCommandBuilder().setName("results").setDescription("View the scores and results of the last MCC event"),
 
     async execute(client, interaction) {
+        await interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: This command is temporarily under development! Sorry for any inconvenience casued.")], ephemeral: true });
+    },
+
+    async execute_new(client, interaction) {
         await interaction.deferReply();
         
         // fetch event rundown data
@@ -40,6 +44,7 @@ module.exports = {
 
             let desc = `**${getFormattedTeamName(team)}** placed **${getPlacementString(rundownData.eventPlacements[team] + 1)}**, scoring \`${rundownData.eventScores[team].toLocaleString("en-US")}\` total points!\n`;
             for (const member of Object.values(teamsData)) {
+                console.log(rundownData.individualScores);
                 desc += `### ${member.username} : \`${rundownData.individualScores[member.username].toLocaleString("en-US")}\` points\n`;
             }
             teamEmbed.setDescription(desc);
