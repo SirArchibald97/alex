@@ -1,4 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, StringSelectMenuBuilder, ActionRowBuilder } = require("discord.js");
+const { getErrorEmbed } = require("../utils");
+const { ErrorType } = require("../types/errors");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("status").setDescription("View the statuses of MCC services")
@@ -15,6 +17,8 @@ module.exports = {
         const status = await fetch(`https://status.mcchampionship.com/v2/components.json`);
         const data = await status.json();
 
+        if (!data.components) return interaction.editReply({ embeds: [getErrorEmbed(ErrorType.NO_API_RES)], ephemeral: true });
+
         const embeds = [];
         for (const component of data.components) {
             const embed = new EmbedBuilder();
@@ -23,38 +27,53 @@ module.exports = {
 
                 let services = "";
                 for (const child of component.children) {
-                    services += `Service: \`${child.description}\`\nStatus: \`${this.STATUS_TYPES[child.status]}\`\nLink: [${child.name}](https://status.mcchampionship.com/${child.id})\n\n`;
+                    services += `**${child.name}**\nService: \`${child.description}\`\nStatus: \`${this.STATUS_TYPES[child.status]}\`\nLink: [${child.name}](https://status.mcchampionship.com)\n`;
+                               
+                    if (child.activeMaintenances) {
+                        services += "**Active Maintenances:**\n";
+                        for (const maintenance of child.activeMaintenances) {
+                            services +=  `${maintenance.name}: \`${this.MAINTENANCE_TYPES[maintenance.status]}\`\nTime: <t:${new Date(maintenance.start).getTime() / 1000}> - <t:${new Date(maintenance.end).getTime() / 1000}>\n`;
+                        }
+                        services += "\n";
+                    }
+                    if (child.activeIncidents) {
+                        services += "**Active Incidents:**\n";
+                        for (const incident of child.activeIncidents) {
+                            services += `${incident.name}: \`${this.INCIDENT_TYPES[incident.status]}\`\nTime: <t:${new Date(incident.createdAt).getTime() / 1000}>\n`
+                        }
+                        services += "\n";
+                    }
+
+                    services += "\n";
                 }
                 embed.setDescription(services);
-                    
-                if (component.activeMaintenances) {
-                    const maintenance = component.activeMaintenances[0];
-
-                    embed.addFields({
-                        name: "Active Maintenances",
-                        value: `${maintenance.name}: \`${this.MAINTENANCE_TYPES[maintenance.status]}\`\nTime: <t:${new Date(maintenance.start).getTime() / 1000}> - <t:${new Date(maintenance.end).getTime() / 1000}>`
-                    });
-                }
 
             } else {
                 embed.setTitle(`${this.SERVICE_EMOJIS[component.name]} ${component.name}`)
-                    .setDescription(`Service: \`${component.description}\`\nStatus: \`${this.STATUS_TYPES[component.status]}\`\nLink: [${component.name}](https://status.mcchampionship.com/${component.id})`)
+                    .setDescription(`Service: \`${component.description}\`\nStatus: \`${this.STATUS_TYPES[component.status]}\`\nLink: [${component.name}](https://status.mcchampionship.com)`)
                     .setColor(this.STATUS_COLOURS[component.status])
 
                 if (component.activeMaintenances) {
-                    const maintenance = component.activeMaintenances[0];
+                    let maintenances = "";
+                    for (const maintenance of component.activeMaintenances) {
+                        maintenances +=  `${maintenance.name}: \`${this.MAINTENANCE_TYPES[maintenance.status]}\`\nTime: <t:${new Date(maintenance.start).getTime() / 1000}> - <t:${new Date(maintenance.end).getTime() / 1000}>`;
+                    }
+                    embed.addFields({ name: "Active Maintenances", value: maintenances });
+                }
 
-                    embed.addFields({
-                        name: "Active Maintenances",
-                        value: `${maintenance.name}: \`${this.MAINTENANCE_TYPES[maintenance.status]}\`\nTime: <t:${new Date(maintenance.start).getTime() / 1000}> - <t:${new Date(maintenance.end).getTime() / 1000}>`
-                    });
+                if (component.activeIncidents) {
+                    let incidents = "";
+                    for (const incident of component.activeIncidents) {
+                        incidents += `${incident.name}: \`${this.INCIDENT_TYPES[incident.status]}\`\nTime: <t:${new Date(incident.createdAt).getTime() / 1000}>`
+                    }
+                    embeds.addFields({ name: "Active Incidents", value: incidents });s
                 }
             }
 
             embeds.push(embed);
         }
 
-        const selectMenu = new StringSelectMenuBuilder().setCustomId("service_selector").addOptions({ label: "🏝️ MCC Island", value: "0" }, { label: "🌐 Websites", value: "1" }, { label: "🖥️ Developer API", value: "2" });
+        const selectMenu = new StringSelectMenuBuilder().setCustomId("service_selector").setPlaceholder("Select a service").addOptions({ label: "🏝️ MCC Island", value: "0" }, { label: "🌐 Websites", value: "1" }, { label: "🖥️ Developer API", value: "2" });
         const reply = await interaction.editReply({ embeds: [embeds[Number(service)]], components: [new ActionRowBuilder().addComponents(selectMenu)], fetchReply: true });
 
         const filter = i => i.customId === "service_selector" && i.member.id === interaction.member.id;
@@ -63,7 +82,7 @@ module.exports = {
             await int.update({ embeds: [embeds[Number(int.values[0])]] });
         });
         collector.on("end", async (collected) => {
-            await reply.edit({ components: [new ActionRowBuilder().addComponents(new StringSelectMenuBuilder.from(selectMenu).setDisabled(true))] });
+            await reply.edit({ components: [new ActionRowBuilder().addComponents(StringSelectMenuBuilder.from(selectMenu).setDisabled(true))] });
         });
     },
 
@@ -85,6 +104,13 @@ module.exports = {
         "NOTSTARTEDYET": "Not Started Yet",
         "INPROGRESS": "In Progress",
         "COMPLETED": "Completed"
+    },
+
+    INCIDENT_TYPES: {
+        "INVESTIGATING": "Investigating",
+        "IDENTIFIED": "Identified",
+        "MONITORING": "Monitoring",
+        "RESOLVED": "Resolved"
     },
 
     SERVICE_EMOJIS: {

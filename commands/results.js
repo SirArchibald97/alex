@@ -1,79 +1,106 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require("discord.js");
-const { getFormattedTeamName, getTeamColourResolvable, getTeamNames, getPlacementString } = require("../utils");
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, ConnectionService } = require("discord.js");
+const { getFormattedTeamName, getTeamColourResolvable, getTeamNames, getPlacementString, cycleEmbeds, getTeamEmoji, getPrettyGameName } = require("../utils");
+const { ErrorType } = require("../types/errors");
 
 module.exports = {
-    data: new SlashCommandBuilder().setName("results").setDescription("View the scores and results of the last MCC event"),
+    data: new SlashCommandBuilder().setName("results").setDescription("View scores and placements of the last MCC!")
+        .addSubcommand(teams => teams.setName("teams").setDescription("View scores and team placements of the last MCC!"))
+        .addSubcommand(players => players.setName("players").setDescription("View scores and individual placements of the last MCC!"))
+        .addSubcommand(games => games.setName("games").setDescription("View scores and team placements of each gamemode from the last MCC!")),
 
     async execute(client, interaction) {
-        await interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: This command is temporarily under development! Sorry for any inconvenience casued.")], ephemeral: true });
-    },
-
-    async execute_new(client, interaction) {
         await interaction.deferReply();
-        
-        // fetch event rundown data
+
         const rundownResponse = await fetch("https://api.mcchampionship.com/v1/rundown");
-        const { code: rundownResCode, data: rundownData } = await rundownResponse.json();
+        const { code, data } = await rundownResponse.json();
+        if (code !== 200) return interaction.reply({ embeds: [getErrorEmbed(ErrorType.NO_API_RES)], ephemeral: true });
 
-        if (rundownResCode !== 200) return interaction.reply({ embeds: [getErrorEmbed("NO_API_RES")], ephemeral: true });
+        const subcommand = interaction.options.getSubcommand();
+        if (subcommand === "teams") {
+            const embeds = [];
+            const placements = Object.entries(data.eventPlacements).sort((a, b) => a[1] - b[1]), scores = data.eventScores, teams = data.creators;
 
-        const descString = "\n\n\nThese are the results of the most recent MCC event. The data will update once the next event has finished! View more up-to-date results at [mcc.live](https://mcc.live)";
-        const pages = {};
-        const selectMenuOptions = [];
-    
-        // add data to embeds
-        const dodgeboltEmbed = new EmbedBuilder().setTitle("🏆 MCC Results: Dodgebolt").setColor("Red").setTimestamp().setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() });
-        const dodgeboltTeams = Object.entries(rundownData.dodgeboltData);
-        const dodgeboltWinner = dodgeboltTeams[0][1] > dodgeboltTeams[1][1] ? dodgeboltTeams[0] : dodgeboltTeams[1];
-        const dodgeboltLoser = dodgeboltTeams[0][1] > dodgeboltTeams[1][1] ? dodgeboltTeams[1] : dodgeboltTeams[0];
-        dodgeboltEmbed.setDescription(
-            `## ${getFormattedTeamName(dodgeboltWinner[0])} win!\n` +
-            `**${getFormattedTeamName(dodgeboltWinner[0])}** won against **${getFormattedTeamName(dodgeboltLoser[0])}** \`${dodgeboltWinner[1]}\` points to \`${dodgeboltLoser[1]}\`` +
-            descString    
-        );
-        pages["DODGEBOLT"] = dodgeboltEmbed;
-        selectMenuOptions.push({ label: "Dodgebolt", value: "DODGEBOLT" });
+            const embed = new EmbedBuilder().setTitle("<:trophy:1133375484021981306> Team Leaderboard").setColor("Red").setFooter({ text: "Powered by Alex!", iconURL: client.user.avatarURL() }).setTimestamp();
+            let desc = "";
+            let counter = 0;
+            for (const [team, placement] of placements) {
+                desc += `### ${getPlacementString(placement)} ${getTeamEmoji(team)} ${getFormattedTeamName(team)}: \`${scores[team].toLocaleString("en-US")}\`\n`;
+                for (const player of teams[team]) desc += `**${player}** : \`${data.individualScores[player].toLocaleString("en-US")}\` points\n`;
+                counter++;
 
-        for (const team of getTeamNames()) {
-            const teamEmbed = new EmbedBuilder().setTitle(`🏆 MCC Results: ${getFormattedTeamName(team)}`).setColor(getTeamColourResolvable(team)).setTimestamp().setFooter({ text: `Powered by Alex!`, iconURL: client.user.avatarURL() });
-
-            const teamRes = await fetch(`https://api.mcchampionship.com/v1/participants/${team}`);
-            const { code: teamsResCode, data: teamsData } = await teamRes.json();
-            
-            if (teamsResCode !== 200) return interaction.reply({ embeds: [getErrorEmbed("NO_API_RES")], ephemeral: true });
-
-            let desc = `**${getFormattedTeamName(team)}** placed **${getPlacementString(rundownData.eventPlacements[team] + 1)}**, scoring \`${rundownData.eventScores[team].toLocaleString("en-US")}\` total points!\n`;
-            for (const member of Object.values(teamsData)) {
-                console.log(rundownData.individualScores);
-                desc += `### ${member.username} : \`${rundownData.individualScores[member.username].toLocaleString("en-US")}\` points\n`;
+                if (counter === 3) {
+                    embeds.push(EmbedBuilder.from(embed).setDescription(desc));
+                    desc = "";
+                    counter = 0;
+                }
             }
-            teamEmbed.setDescription(desc);
+            if (desc.length > 0) embeds.push(EmbedBuilder.from(embed).setDescription(desc));
 
-            pages[team] = teamEmbed;
-            selectMenuOptions.push({ label: getFormattedTeamName(team), value: team });
-        }
+            await cycleEmbeds(interaction, embeds);
 
-        const reply = await interaction.editReply({ 
-            embeds: [dodgeboltEmbed], 
-            components: [new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setCustomId("result_page_selector").setPlaceholder("Select a page").addOptions(selectMenuOptions))],
-            fetchReply: true 
-        });
-        const filter = i => i.customId === "result_page_selector" && i.member.id === interaction.member.id;
-        const collector = reply.createMessageComponentCollector({ filter: filter, time: 60_000 * 5 });
-        collector.on("collect", async (int) => {
-            await int.update({ embeds: [pages[int.values[0]]] });
-        });
-        collector.on("end", async (collected) => {
-            await reply.edit({ 
-                components: [
-                    new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
-                        .setCustomId("result_page_selector_disable")
-                        .setPlaceholder("Select a page")
-                        .addOptions(selectMenuOptions)
-                        .setDisabled(true)
-                    )
-                ]
+        } else if (subcommand === "players") {
+            const embeds = [];
+            const players = Object.entries(data.individualScores).sort((a, b) => b[1] - a[1]), teams = data.creators;
+
+            const embed = new EmbedBuilder().setTitle("<:trophy:1133375484021981306> Player Leaderboard").setColor("Red").setFooter({ text: "Powered by Alex!", iconURL: client.user.avatarURL() }).setTimestamp();
+            let desc = "";
+            let counter = 0;
+            let position = 0;
+            for (const [player, score] of players) {
+                const team = Object.entries(teams).find(([team, members]) => members.includes(player))[0];
+                desc += `**${getPlacementString(position)} ${getTeamEmoji(team)} ${player}**: \`${score.toLocaleString("en-US")} points\`\n`
+                counter++;
+                position++;
+
+                if (counter === 10) {
+                    embeds.push(EmbedBuilder.from(embed).setDescription(desc));
+                    desc = "";
+                    counter = 0;
+                }
+            }
+            if (desc.length > 0) embeds.push(EmbedBuilder.from(embed).setDescription(desc));
+
+            await cycleEmbeds(interaction, embeds);
+
+        } else {
+            const embeds = [];
+
+            const dodgebolt = data.dodgeboltData;
+            let desc = [];
+            for (const [team, score] of Object.entries(dodgebolt)) desc.push(`${getTeamEmoji(team)} ${getFormattedTeamName(team)}: \`${score}\``);
+            embeds.push(new EmbedBuilder().setTitle("<:crown:1135963205328453663> Dodgebolt Results").setDescription("### " + desc.join(" vs. ")).setColor("Red").setFooter({ text: "Powered by Alex!", iconURL: client.user.avatarURL() }).setTimestamp());
+
+            for (const game of Object.values(data.history)) {
+                const teamPlacements = Object.entries(game.gamePlacements).sort((a, b) => a[1] - b[1]);
+                let desc = `Game Multiplier: \`x${game.multiplier}\`\n\n`;
+                for (const [team, placement] of teamPlacements) {
+                    desc += `**${getPlacementString(placement)} ${getTeamEmoji(team)} ${getFormattedTeamName(team)}**: \`${game.gameScores[team].toLocaleString("en-US")}\`\n`;
+                }
+
+                embeds.push(new EmbedBuilder()
+                    .setTitle(`<:crown:1135963205328453663> Game #${game.index + 1}: ${getPrettyGameName(game.game)}`)
+                    .setDescription(desc)
+                    .setFooter({ text: "Powered by Alex!", iconURL: client.user.avatarURL() }).setTimestamp().setColor("Red")
+                );
+            }
+
+            const selectMenu = new StringSelectMenuBuilder().setCustomId("results-select").setPlaceholder("Select a game to view results").setMinValues(1).setMaxValues(1);
+            let counter = 1;
+            selectMenu.addOptions({ label: "Dodgebolt", value: "0" });
+            for (const game of Object.values(data.history)) {
+                selectMenu.addOptions({ label: getPrettyGameName(game.game), value: counter.toString() });
+                counter++;
+            }
+            const reply = await interaction.editReply({ embeds: [embeds[0]], components: [new ActionRowBuilder().addComponents(selectMenu)], fetchReply: true });
+            const filter = i => i.member.id === interaction.member.id;
+            const collector = reply.createMessageComponentCollector({ filter: filter, time: 60_000 * 5 });
+            collector.on("collect", async i => {
+                await i.update({ embeds: [embeds[i.values[0]]] });
             });
-        });
-    }
+            collector.on("end", async collected => {
+                await reply.edit({ components: [new ActionRowBuilder().addComponents(StringSelectMenuBuilder.from(selectMenu).setDisabled(true))] });
+            });
+            
+        }
+    },
 }
