@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require("discord.js");
 const { getBeeSettings, updateBeeSettings } = require("../db");
 
 module.exports = {
@@ -12,7 +12,7 @@ module.exports = {
         ),
 
     async execute(client, interaction) {
-        if (interaction.member.permissions.has("ADMINISTRATOR") === false) return interaction.reply({ 
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ 
             embeds: [new EmbedBuilder().setDescription(":x: Only server administrators can use this command!").setColor("Red")]
         });
 
