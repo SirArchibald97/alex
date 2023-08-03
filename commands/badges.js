@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require("discord.js");
-const { getBadges } = require("../db");
+const { getBadges } = require("../api");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("badges").setDescription("View the hidden badges for each game!")
@@ -14,7 +14,7 @@ module.exports = {
 
     async execute(client, interaction) {
         const game = interaction.options.getString("game");
-        const badges = await getBadges(client.db);
+        const badges = await getBadges(client);
 
         const badgeData = [[], [], [], []]; // HITW, TGTTOS, BB, SKB
         const gameIndex = { "HITW": 0, "TGTTOS": 1, "BB": 2, "SKB": 3 };

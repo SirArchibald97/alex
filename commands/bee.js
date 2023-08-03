@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { getBeeSettings, updateBeeSettings } = require("../db");
+const { updateBeeSettings, getGuild } = require("../api");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("bee").setDescription("Set a channel for the daily Bee reminder!")
@@ -16,7 +16,7 @@ module.exports = {
             embeds: [new EmbedBuilder().setDescription(":x: Only server administrators can use this command!").setColor("Red")]
         });
 
-        const beeSettings = await getBeeSettings(client.db, interaction.guild.id);
+        const beeSettings = (await getGuild(client, interaction.guild.id)).settings.bee;
 
         if (interaction.options.getSubcommand() === "toggle") {
             if (beeSettings.channel === '0' || beeSettings.role === '0') return interaction.reply({ 
@@ -25,7 +25,7 @@ module.exports = {
             });
 
             const newSetting = beeSettings.toggled === 0 ? 1 : 0;
-            await updateBeeSettings(client.db, interaction.guild.id, newSetting, beeSettings.channel, beeSettings.role);
+            await updateBeeSettings(client, interaction.guild.id, newSetting, beeSettings.channel, beeSettings.role);
             await interaction.reply({
                 embeds: [new EmbedBuilder()
                     .setDescription(`### Toggled Bee reminders ${newSetting === 1 ? "on" : "off"}!`)
@@ -35,7 +35,7 @@ module.exports = {
 
         } else if (interaction.options.getSubcommand() === "setchannel") {
             const channel = interaction.options.getChannel("channel");
-            await updateBeeSettings(client.db, interaction.guild.id, beeSettings.toggled, channel?.id || 0, beeSettings.role);
+            await updateBeeSettings(client, interaction.guild.id, beeSettings.toggled, channel?.id || 0, beeSettings.role);
             await interaction.reply({ 
                 embeds: [
                     new EmbedBuilder()
@@ -46,7 +46,7 @@ module.exports = {
         
         } else {
             const role = interaction.options.getRole("role");
-            await updateBeeSettings(client.db, interaction.guild.id, beeSettings.toggled, beeSettings.channel, role?.id || 0);
+            await updateBeeSettings(client, interaction.guild.id, beeSettings.toggled, beeSettings.channel, role?.id || 0);
             await interaction.reply({ 
                 embeds: [
                     new EmbedBuilder()
