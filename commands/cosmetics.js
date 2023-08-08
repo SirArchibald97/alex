@@ -3,12 +3,11 @@ const { getCosmetics, getNpc } = require("../api");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("cosmetics").setDescription("Missing a cosmetic? Check here to find out where to get it!")
-        .addStringOption(option => option.setName("query").setDescription("Enter a search term").setRequired(true).setMinLength(5)),
+        .addStringOption(option => option.setName("query").setDescription("Enter a search term").setRequired(true).setMinLength(3)),
 
     async execute(client, interaction) {
         const query = interaction.options.getString("query");
         const cosmetics = await getCosmetics(client, query);
-
         if (cosmetics.length === 0) return await interaction.reply({ embeds: [
             new EmbedBuilder().setDescription(":x: Sorry, I couldn't find a cosmetic matching that search!").setColor("Red")
         ] });

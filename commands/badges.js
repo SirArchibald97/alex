@@ -15,10 +15,11 @@ module.exports = {
     async execute(client, interaction) {
         const game = interaction.options.getString("game");
         const badges = await getBadges(client);
+        if (badges.code !== 200) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact @SirArchibald on Discord.")], ephemeral: true });
 
         const badgeData = [[], [], [], []]; // HITW, TGTTOS, BB, SKB
         const gameIndex = { "HITW": 0, "TGTTOS": 1, "BB": 2, "SKB": 3 };
-        for (const badge of badges) {
+        for (const badge of badges.badges) {
             badgeData[gameIndex[badge.game]].push(badge);
         }
 

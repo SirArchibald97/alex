@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require("discord.js");
-const { updateBeeSettings, getGuild } = require("../api");
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, NewsChannel } = require("discord.js");
+const { getGuild, updateGuild } = require("../api");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("bee").setDescription("Set a channel for the daily Bee reminder!")
@@ -16,26 +16,32 @@ module.exports = {
             embeds: [new EmbedBuilder().setDescription(":x: Only server administrators can use this command!").setColor("Red")]
         });
 
-        const beeSettings = (await getGuild(client, interaction.guild.id)).settings.bee;
+        const guild = await getGuild(client, interaction.guild.id);
+        if (guild.code !== 200) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact @SirArchibald on Discord.")], ephemeral: true });
 
+        const beeSettings = guild.guild.settings.bee;
         if (interaction.options.getSubcommand() === "toggle") {
             if (beeSettings.channel === '0' || beeSettings.role === '0') return interaction.reply({ 
                 embeds: [new EmbedBuilder().setDescription(":x: You must set a channel and role before toggling the Bee reminder!").setColor("Red")],
                 ephemeral: true
             });
 
-            const newSetting = beeSettings.toggled === 0 ? 1 : 0;
-            await updateBeeSettings(client, interaction.guild.id, newSetting, beeSettings.channel, beeSettings.role);
+            const newSetting = beeSettings.toggled === "false" ? true : false;
+            let newSettings = guild.guild.settings;
+            newSettings.bee.toggled = newSetting;
+            await updateGuild(client, interaction.guild.id, newSettings);
             await interaction.reply({
                 embeds: [new EmbedBuilder()
-                    .setDescription(`### Toggled Bee reminders ${newSetting === 1 ? "on" : "off"}!`)
-                    .setColor(newSetting === 1 ? "Green" : "Red")
+                    .setDescription(`### Toggled Bee reminders ${newSetting ? "on" : "off"}!`)
+                    .setColor(newSetting ? "Green" : "Red")
                 ]
             });
 
         } else if (interaction.options.getSubcommand() === "setchannel") {
             const channel = interaction.options.getChannel("channel");
-            await updateBeeSettings(client, interaction.guild.id, beeSettings.toggled, channel?.id || 0, beeSettings.role);
+            let newSettings = guild.guild.settings;
+            newSettings.bee.channel = channel.id;
+            await updateGuild(client, interaction.guild.id, newSettings);
             await interaction.reply({ 
                 embeds: [
                     new EmbedBuilder()
@@ -46,7 +52,9 @@ module.exports = {
         
         } else {
             const role = interaction.options.getRole("role");
-            await updateBeeSettings(client, interaction.guild.id, beeSettings.toggled, beeSettings.channel, role?.id || 0);
+            let newSettings = guild.guild.settings;
+            newSettings.bee.role = role.id;
+            await updateGuild(client, interaction.guild.id, newSettings);
             await interaction.reply({ 
                 embeds: [
                     new EmbedBuilder()
