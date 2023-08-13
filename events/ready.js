@@ -18,13 +18,16 @@ module.exports = async (client) => {
     client.guild_webhook = new WebhookClient({ url: client.config.webhook });
 
     cron.schedule("0 10 * * *", async () => {
-        const { getGuilds } = require("../api");
-        const guilds = (await getGuilds(client)).filter(g => g.settings.bee.toggled === "true");
-        if (!guilds) return;
+        console.log("Sending bee reminders...");
 
-        for (const settings of guilds) {
+        const { getGuilds } = require("../api");
+        const guilds = await getGuilds(client);
+        const filteredGuilds = guilds.filter(g => g.settings.bee.toggled === "true");
+        if (!filteredGuilds) return;
+
+        for (const { guildId, settings } of filteredGuilds) {
             if (settings.bee.channel === "0") return;
-            const guild = await client.guilds.fetch(settings.guild_id);
+            const guild = await client.guilds.fetch(guildId);
             const channel = await guild.channels.fetch(settings.bee.channel);
             await channel.send({
                 content: settings.bee.role !== "0" ? `<@&${settings.bee.role}>` : "",
@@ -38,6 +41,7 @@ module.exports = async (client) => {
         "Sky Battle", "Battle Box", "Dodgebolt", "Hole in the Wall", "Parkour Tag", "Rocket Spleef Rush", "Ace Race", 
         "Parkour Warrior", "Buildmart", "Sands of Time", "Survival Games", "Gridrunners", "TGTTOS", "Meltdown"
     ];
+    await client.user.setActivity({ name: prescences[Math.floor(Math.random() * prescences.length - 1) + 1], type: ActivityType.Playing, url: "https://alex.sirarchibald.dev" });
     setInterval(async () => {
         await client.user.setActivity({ name: prescences[Math.floor(Math.random() * prescences.length - 1) + 1], type: ActivityType.Playing, url: "https://alex.sirarchibald.dev" });
     }, 60_000 * 5);
