@@ -12,6 +12,7 @@ module.exports = {
     // GUILDS
     addGuild: async function(client, guildId) { return await post(client, `${client.config.api_url}/alex/guilds/new`, { guild_id: guildId }); },
     getGuild: async function(client, guildId) { return (await get(client, `${client.config.api_url}/alex/guilds/${guildId}`)).guild; },
+    getGuilds: async function(client) { return (await get(client, `${client.config.api_url}/alex/guilds`)).guilds; },
     updateGuild: async function(client, guildId, newSettings) { return await post(client, `${client.config.api_url}/alex/guilds/${guildId}`, { settings: newSettings }); },
 
     // COSMETICS

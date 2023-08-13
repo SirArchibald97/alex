@@ -1,7 +1,6 @@
-const { Collection, WebhookClient, EmbedBuilder } = require("discord.js");
+const { Collection, WebhookClient, EmbedBuilder, ActivityType } = require("discord.js");
 const fs = require("fs");
 const cron = require("node-cron");
-const { getBeeGuilds } = require("../api");
 
 module.exports = async (client) => {
     console.log(`Client connected! [${client.user.tag}]`);
@@ -19,16 +18,27 @@ module.exports = async (client) => {
     client.guild_webhook = new WebhookClient({ url: client.config.webhook });
 
     cron.schedule("0 10 * * *", async () => {
-        const { guilds } = await getBeeGuilds(client);
+        const { getGuilds } = require("../api");
+        const guilds = (await getGuilds(client)).filter(g => g.settings.bee.toggled === "true");
         if (!guilds) return;
 
-        for (const beeSettings of guilds) {
-            const guild = await client.guilds.fetch(beeSettings.guild_id);
-            const channel = await guild.channels.fetch(beeSettings.channel);
+        for (const settings of guilds) {
+            if (settings.bee.channel === "0") return;
+            const guild = await client.guilds.fetch(settings.guild_id);
+            const channel = await guild.channels.fetch(settings.bee.channel);
             await channel.send({
-                content: beeSettings.role !== 0 ? `<@&${beeSettings.role}>` : "",
+                content: settings.bee.role !== "0" ? `<@&${settings.bee.role}>` : "",
                 embeds: [new EmbedBuilder().setDescription("## DAILY BEE REMINDER!").setColor("Yellow").setImage("https://imgur.com/LGEEQkV.gif")]
             });
         }
     }, { timezone: "Etc/UTC" });
+
+    
+    const prescences = [
+        "Sky Battle", "Battle Box", "Dodgebolt", "Hole in the Wall", "Parkour Tag", "Rocket Spleef Rush", "Ace Race", 
+        "Parkour Warrior", "Buildmart", "Sands of Time", "Survival Games", "Gridrunners", "TGTTOS", "Meltdown"
+    ];
+    setInterval(async () => {
+        await client.user.setActivity({ name: prescences[Math.floor(Math.random() * prescences.length - 1) + 1], type: ActivityType.Playing, url: "https://alex.sirarchibald.dev" });
+    }, 60_000 * 5);
 }

@@ -47,34 +47,36 @@ module.exports = {
     // get a prety game name from a raw game name
     getPrettyGameName: function(gameName) {
         const uglyNames = ["MG_BATTLE_BOX", "MG_SANDS_OF_TIME", "MG_ACE_RACE", "MG_PARKOUR_WARRIOR", "MG_ROCKET_SPLEEF",
-             "MG_GRID_RUNNERS", "MG_HOLE_IN_THE_WALL", "MG_SKY_BATTLE", "MG_SURVIVAL_GAMES", "MG_BUILD_MART"];
+             "MG_GRID_RUNNERS", "MG_HOLE_IN_THE_WALL", "MG_SKY_BATTLE", "MG_SURVIVAL_GAMES", "MG_BUILD_MART",
+             "MG_TGTTOSAWAF", "MG_MELTDOWN", "MG_PARKOUR_TAG"];
         const prettyNames = ["Battle Box", "Sands of Time", "Ace Race", "Parkour Warrior", "Rocket Spleef", 
-            "Grid Runners", "Hole in the Wall", "Sky Battle", "Survival Games", "Build Mart"];
+            "Grid Runners", "Hole in the Wall", "Sky Battle", "Survival Games", "Build Mart",
+            "TGTTOSAWAF", "Meltdown", "Parkour Tag"];
         return prettyNames[uglyNames.indexOf(gameName)];
     },
 
     // custom error code embed
     getErrorEmbed: function(errorCode) {
-        return new EmbedBuilder().setDescription(`### Sorry about this!\n Something went wrong ${errorCode}, please wait a bit and try again later!`).setColor("Red");
+        return new EmbedBuilder().setTitle("Sorry about this!").setDescription(`Something went wrong ${errorCode}, please wait a bit and try again later!`).setColor("Red");
     },
 
     // cycle through embeds with buttons
     cycleEmbeds: async function(interaction, embeds) {
-        const leftButton = new ButtonBuilder().setCustomId("results-team-left").setEmoji("⬅").setStyle(ButtonStyle.Primary);
-        const rightButton = new ButtonBuilder().setCustomId("results-team-right").setEmoji("➡").setStyle(ButtonStyle.Primary);
+        const leftButton = new ButtonBuilder().setCustomId("left").setEmoji("⬅").setStyle(ButtonStyle.Primary);
+        const rightButton = new ButtonBuilder().setCustomId("right").setEmoji("➡").setStyle(ButtonStyle.Primary);
 
         const reply = await interaction.editReply({ embeds: [embeds[0]], components: [new ActionRowBuilder().addComponents(leftButton, rightButton)], fetchReply: true });
         const filter = i => i.member.id === interaction.member.id;
         const collector = reply.createMessageComponentCollector({ filter: filter, time: 60_000 * 5 });
         let index = 0;
         collector.on("collect", async int => {
-            if (int.customId.includes("left")) {
+            if (int.customId === "left") {
                 if (index > 0) {
                     index--;
                 } else {
                     index = embeds.length - 1;
                 }
-            } else {
+            } else if (int.customId === "right") {
                 if (index < embeds.length - 1) {
                     index++;
                 } else {
