@@ -24,8 +24,19 @@ module.exports = {
         for (const cosmetic of cosmetics) {
             const npc = await getNpc(client, cosmetic.npc_id);
             if (npc.code !== 200) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact @SirArchibald on Discord.")], ephemeral: true });
-            const priceString = cosmetic.coins === 0 ? `<:silver:1133826209864745082> \`${cosmetic.silver.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }\`` : `<:coin:1133375482595917906> \`${cosmetic.coins.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}\``;
-            desc += `### ${cosmetic.name}\n**NPC:** ${npc.name}\n**Location:** ${npc.location}\n${priceString}   •   <:trophy:1133375484021981306> \`${cosmetic.trophies}\`\n`;
+            
+            let priceString = "";
+            if (!cosmetic.materials) {
+                priceString = cosmetic.coins === 0 ? `<:silver:1133826209864745082> \`${cosmetic.silver.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }\`` : `<:coin:1133375482595917906> \`${cosmetic.coins.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}\``;
+            } else {
+                let materials = [];
+                for (const material of cosmetic.materials) {
+                    materials.push(`${material.amount}x \`${material.material}\``);
+                }
+                priceString = materials.join("\n");
+            }
+            desc += `### ${cosmetic.name}\n**NPC:** ${npc.name}\n**Location:** ${npc.location}\n<:trophy:1133375484021981306> \`${cosmetic.trophies}\` ${(cosmetic.materials ? "\n" : " • ") + priceString}\n`;
+
         }
         embed.setDescription(desc);
 
