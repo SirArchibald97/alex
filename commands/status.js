@@ -64,9 +64,9 @@ module.exports = {
                 if (component.activeIncidents) {
                     let incidents = "";
                     for (const incident of component.activeIncidents) {
-                        incidents += `${incident.name}: \`${this.INCIDENT_TYPES[incident.status]}\`\nTime: <t:${new Date(incident.createdAt).getTime() / 1000}>`
+                        incidents += `${incident.name}: \`${this.INCIDENT_TYPES[incident.status]}\`\nImpact: \`${this.STATUS_TYPES[incident.impact]}\`\nTime: <t:${Math.round(new Date(incident.started).getTime() / 1000)}>\n[View on web](${incident.url})`
                     }
-                    embeds.addFields({ name: "Active Incidents", value: incidents });s
+                    embed.addFields({ name: "Active Incidents", value: incidents });
                 }
             }
 
@@ -90,7 +90,7 @@ module.exports = {
         "OPERATIONAL": "Operational",
         "PARTIALOUTAGE": "Partial Outage",
         "MINOROUTAGE": "Minor Outage",
-        "MARJOROUTAGE": "Major Outage",
+        "MAJOROUTAGE": "Major Outage",
     },
 
     STATUS_COLOURS: {
