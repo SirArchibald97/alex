@@ -8,7 +8,7 @@ module.exports = {
     async execute(client, interaction) {
         const query = interaction.options.getString("query");
         const { success, cosmetics } = await getCosmetics(client, query);
-        if (!success) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact @SirArchibald on Discord.")], ephemeral: true });
+        if (!success) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact **@SirArchibald** on Discord.")], ephemeral: true });
 
         if (cosmetics.length === 0) return await interaction.reply({ embeds: [
             new EmbedBuilder().setDescription(":x: Sorry, I couldn't find a cosmetic matching that search!").setColor("Red")
@@ -22,8 +22,8 @@ module.exports = {
 
         let desc = "";
         for (const cosmetic of cosmetics) {
-            const npc = await getNpc(client, cosmetic.npc_id);
-            if (npc.code !== 200) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact @SirArchibald on Discord.")], ephemeral: true });
+            const { success, npc } = await getNpc(client, cosmetic.npc_id);
+            if (!success) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact **@SirArchibald** on Discord.")], ephemeral: true });
             
             let priceString = "";
             if (!cosmetic.materials) {
