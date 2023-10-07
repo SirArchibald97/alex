@@ -4,6 +4,8 @@ const cron = require("node-cron");
 
 module.exports = async (client) => {
     console.log(`Client connected! [${client.user.tag}]`);
+    const guilds = await client.guilds.fetch();
+    console.log(`Listening in ${guilds.size} guilds...`);
 
     const deploy = require("../deploy");
     await deploy(client);

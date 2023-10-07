@@ -18,7 +18,10 @@ module.exports = {
     // COSMETICS
     getBadges: async function(client) { return await get(client, `${client.config.api_url}/alex/badges`); },
     getCosmetics: async function(client, query) { return await get(client, `${client.config.api_url}/alex/cosmetics/${query}`); },
+    getCosmeticsByNpc: async function(client, npcId) { return await get(client, `${client.config.api_url}/alex/npcs/${npcId}/cosmetics`); },
+
     getNpc: async function(client, npcId) { return await get(client, `${client.config.api_url}/alex/npcs/${npcId}`); },
+    findNpc: async function(client, query) { return await get(client, `${client.config.api_url}/alex/npcs/find/${query}`); },
 
     // TOURNAMENTS
     getTournament: async function(client, id) {

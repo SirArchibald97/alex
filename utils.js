@@ -57,7 +57,7 @@ module.exports = {
 
     // custom error code embed
     getErrorEmbed: function(errorCode) {
-        return new EmbedBuilder().setTitle("Sorry about this!").setDescription(`Something went wrong ${errorCode}, please wait a bit and try again later!`).setColor("Red");
+        return new EmbedBuilder().setTitle("Oops, sorry about this!").setDescription(`Something went wrong ${errorCode}, please wait a bit and try again later! If the issue persists, contact SirArchibald [here](https://mcchampionship.com/conversations/add?to=sirarchibald).`).setColor("Red");
     },
 
     // cycle through embeds with buttons

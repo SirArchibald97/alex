@@ -1,14 +1,16 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { getCosmetics, getNpc } = require("../api");
+const { getErrorEmbed } = require("../utils");
+const { ErrorType } = require("../types/errors");
 
 module.exports = {
-    data: new SlashCommandBuilder().setName("cosmetics").setDescription("Missing a cosmetic? Check here to find out where to get it!")
+    data: new SlashCommandBuilder().setName("findcosmetic").setDescription("Missing a cosmetic? Check here to find out where to get it!")
         .addStringOption(option => option.setName("query").setDescription("Enter a search term").setRequired(true).setMinLength(3)),
 
     async execute(client, interaction) {
         const query = interaction.options.getString("query");
         const { success, cosmetics } = await getCosmetics(client, query);
-        if (!success) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact **@SirArchibald** on Discord.")], ephemeral: true });
+        if (!success) return interaction.reply({ embeds: [getErrorEmbed(ErrorType.NO_ALEX_RES)], ephemeral: true });
 
         if (cosmetics.length === 0) return await interaction.reply({ embeds: [
             new EmbedBuilder().setDescription(":x: Sorry, I couldn't find a cosmetic matching that search!").setColor("Red")
@@ -23,7 +25,7 @@ module.exports = {
         let desc = "";
         for (const cosmetic of cosmetics) {
             const { success, npc } = await getNpc(client, cosmetic.npc_id);
-            if (!success) return interaction.reply({ embeds: [new EmbedBuilder().setDescription(":x: **Something went wrong doing that!** If the issue persists please contact **@SirArchibald** on Discord.")], ephemeral: true });
+            if (!success) return interaction.reply({ embeds: [getErrorEmbed(ErrorType.NO_ALEX_RES)], ephemeral: true });
             
             let priceString = "";
             if (!cosmetic.materials) {
@@ -35,7 +37,7 @@ module.exports = {
                 }
                 priceString = materials.join("\n");
             }
-            desc += `### ${cosmetic.name}\n**NPC:** ${npc.name}\n**Location:** ${npc.location}\n<:trophy:1133375484021981306> \`${cosmetic.trophies}\` ${(cosmetic.materials ? "\n" : " • ") + priceString}\n`;
+            desc += `### ${cosmetic.name}\n**NPC:** ${npc.name}\n**Location:** ${npc.location} (${npc.coords})\n<:trophy:1133375484021981306> \`${cosmetic.trophies}\` ${(cosmetic.materials ? "\n" : " • ") + priceString}\n`;
 
         }
         embed.setDescription(desc);
